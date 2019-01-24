@@ -117,9 +117,9 @@ namespace multiverso { namespace lightlda
                 for (int32_t counter = 0; counter < Config::num_vocabs; ++counter) {
                     int32_t noise_word = counter; //FIXME 这里应该通过随机数生成，在词表里随机挑选
                     float laplace_scale = static_cast<float>(simple_rng.GetLaplace(0, 0.1)); //FIXME 这里的laplace 应该配置得到
-                    if (cur_word == noise_word) {
-                        laplace_scale += 1;
-                    }
+                    // if (cur_word == noise_word) {
+                    //     laplace_scale += 1;
+                    // }
                     if (laplace_scale < 0.8) {
                         continue;
                     }
