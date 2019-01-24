@@ -119,7 +119,7 @@ namespace multiverso { namespace lightlda
                         std::cerr << "doc reinitialized, please check" << std::end;
                         exit(1);
                     }
-                    double laplace_scale = SimpleRNG::GetLaplace(0, 0.1); //FIXME 这里的laplace 应该配置得到
+                    float laplace_scale = std::statc_cast<float>(SimpleRNG::GetLaplace(0, 0.1)); //FIXME 这里的laplace 应该配置得到
                     if (cur_word == noise_word) {
                         laplace_scale += 1;
                     }
