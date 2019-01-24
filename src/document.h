@@ -47,9 +47,11 @@ namespace multiverso { namespace lightlda
         int32_t* end_;
         int32_t& cursor_;
 
+    public:
         //文档中的词的干扰词，以及干扰词的权重。按照位置存储
         std::vector<std::vector<std::pair<int32_t, float>>> noise_words;
 
+    private:
         // No copying allowed
         Document(const Document&);
         void operator=(const Document&);

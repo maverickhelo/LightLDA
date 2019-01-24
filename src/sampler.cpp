@@ -1,6 +1,7 @@
 #include "sampler.h"
 
 #include <vector>
+#include <map>
 #include <cmath>
 #include "alias_table.h"
 #include "common.h"
@@ -41,7 +42,7 @@ namespace multiverso { namespace lightlda
             int32_t word = doc->Word(cursor);
             if (word > lastword) break;
             int32_t old_topic = doc->Topic(cursor);
-            int32_t new_topic = Sample(doc, word, old_topic, old_topic,
+            int32_t new_topic = Sample(doc, cursor, word, old_topic, old_topic,
                 model, alias);
             if (old_topic != new_topic)
             {
@@ -67,15 +68,15 @@ namespace multiverso { namespace lightlda
         doc->GetDocTopicVector(*doc_topic_counter_);
     }
 
-    float ComputeNoisedWordTopicBetaSum(vector<pair<int32_t, float>>& noise_words, int32_t topic, ModelBase* model, float beta_, int32_t old_topic, int32_t subtractor_, float n_beta_sum) {
-        std::vector<Row<int32_t>&> word_p_topic_rows;
+    float ComputeNoisedWordTopicBetaSum(std::vector<std::pair<int32_t, float>>& noise_words, int32_t topic, ModelBase* model, float beta_, int32_t old_topic, int32_t subtractor_, float n_beta_sum) {
+        std::vector<Row<int32_t>*> word_p_topic_rows;
         for (auto p = noise_words.begin(); p != noise_words.end(); p++) {
-            word_p_topic_rows.push_back(model->GetWordTopicRow(p->first));
+            word_p_topic_rows.push_back(&(model->GetWordTopicRow(p->first)));
         }
 
         std::vector<float> n_w_p_betas;
-        for (audo p = word_p_topic_rows.begin(); p != word_p_topic_rows.end(); p++) {
-            n_w_p_betas.push_back((*p).At(topic) + beta_);
+        for (auto p = word_p_topic_rows.begin(); p != word_p_topic_rows.end(); p++) {
+            n_w_p_betas.push_back((*p)->At(topic) + beta_);
         }
 
         if (topic == old_topic)
@@ -84,8 +85,8 @@ namespace multiverso { namespace lightlda
                 *p -= subtractor_;
             }
         }
-        float noised_n_tw_beta = 0.0;
-        for(size_t n_index = 0; n_index < noise_words.size(); ++i) {
+        float noised_n_w_beta = 0.0;
+        for(size_t n_index = 0; n_index < noise_words.size(); ++n_index) {
             float laplace_scale = noise_words[n_index].second;
             float n_w_p_beta = n_w_p_betas[n_index];
             noised_n_w_beta += laplace_scale * std::log(n_w_p_beta/n_beta_sum);
@@ -148,8 +149,8 @@ namespace multiverso { namespace lightlda
                 proposal_s = (w_s_cnt + beta_) / (n_s + beta_sum_);
                 proposal_t = (w_t_cnt + beta_) / (n_t + beta_sum_);
 
-                float noised_n_tw_beta = std::exp(ComputeNoisedWordTopicBetaSum(doc->noise_words[index],t, model, beta_, old_topic, substractor_, n_t_beta_sum) + std::log(n_tw_beta / n_t_beta_sum));
-                float noised_n_sw_beta = std::exp(ComputeNoisedWordTopicBetaSum(doc->noise_words[index], s, model, beta_, old_topic, substractor_, n_s_beta_sum) + std::log(n_sw_beta / n_s_beta_sum));
+                float noised_n_tw_beta = std::exp(ComputeNoisedWordTopicBetaSum(doc->noise_words[index],t, model, beta_, old_topic, subtractor_, n_t_beta_sum) + std::log(n_tw_beta / n_t_beta_sum));
+                float noised_n_sw_beta = std::exp(ComputeNoisedWordTopicBetaSum(doc->noise_words[index], s, model, beta_, old_topic, subtractor_, n_s_beta_sum) + std::log(n_sw_beta / n_s_beta_sum));
 
                 // nominator = n_td_alpha * n_tw_beta * n_s_beta_sum * proposal_s;
                 // denominator = n_sd_alpha * n_sw_beta * n_t_beta_sum * proposal_t;
@@ -206,8 +207,8 @@ namespace multiverso { namespace lightlda
                 proposal_s = (doc_topic_counter_->At(s) + alpha_);
                 proposal_t = (doc_topic_counter_->At(t) + alpha_);
 
-                float noised_n_tw_beta = std::exp(ComputeNoisedWordTopicBetaSum(doc->noise_words[index], t, model, beta_, old_topic, substactor_, n_t_beta_sum) + std::log(n_tw_beta / n_t_beta_sum));
-                float noised_n_sw_beta = std::exp(ComputeNoisedWordTopicBetaSum(doc->noise_words[index], s, model, beta_, old_topic, substractor_, n_s_beta_sum) + std::log(n_sw_beta / n_s_beta_sum));
+                float noised_n_tw_beta = std::exp(ComputeNoisedWordTopicBetaSum(doc->noise_words[index], t, model, beta_, old_topic, subtractor_, n_t_beta_sum) + std::log(n_tw_beta / n_t_beta_sum));
+                float noised_n_sw_beta = std::exp(ComputeNoisedWordTopicBetaSum(doc->noise_words[index], s, model, beta_, old_topic, subtractor_, n_s_beta_sum) + std::log(n_sw_beta / n_s_beta_sum));
 
                 // nominator = n_td_alpha * n_tw_beta * n_s_beta_sum * proposal_s;
                 // denominator = n_sd_alpha * n_sw_beta * n_t_beta_sum * proposal_t;
