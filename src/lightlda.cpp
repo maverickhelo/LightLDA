@@ -110,25 +110,38 @@ namespace multiverso { namespace lightlda
          * 为每个doctment设置通过laplace生成的干扰词，以及词的权重
          */
         static void SetDocLaplaceNoise(Document* doc) {
-            doc->noise_words.clear();            
+            doc->noise_words.clear();           
+            if (Config::is_print != 0) {
+                Log::Info("doc total words num is: %d\n", doc->Size());
+            } 
             for (int32_t i = 0; i < doc->Size(); ++i) {
                 int32_t cur_word = doc->Word(i);
                 std::vector<std::pair<int32_t, float>> noise_words;
                 for (int32_t counter = 0; counter < Config::num_vocabs; ++counter) {
-                    int32_t noise_word = counter; //FIXME 这里应该通过随机数生成，在词表里随机挑选
-                    float laplace_scale = static_cast<float>(simple_rng.GetLaplace(0, 0.1)); //FIXME 这里的laplace 应该配置得到
+                    int32_t noise_word = rand() % Config::num_vocabs;
+                    float laplace_scale = static_cast<float>(simple_rng.GetLaplace(0, Config::laplace_scale)); 
                     // if (cur_word == noise_word) {
                     //     laplace_scale += 1;
                     // }
-                    if (laplace_scale < 0.8) {
+                    if (laplace_scale < Config::laplace_upperthres) {
                         continue;
                     }
                     noise_words.push_back(std::make_pair(noise_word, laplace_scale));
-                    if (noise_words.size() > 100) { //FIXME 个数需要是配置的
+                    if (noise_words.size() >= Config::max_noise_num) { 
                         break;
                     }
                 }
                 doc->noise_words.push_back(noise_words);
+                if (Config::is_print != 0) {
+                    Log::Info("word %d noise word num is: %d\n", cur_word, noise_words.size());
+                }
+            }
+            if (Config::is_print != 0) {
+                size_t sum = 0;
+                for (auto p = doc->noise_words.begin(); p != doc->noise_words.end(); p++) {
+                    sum += p->size();
+                } 
+                Log::Info("total noise word num is: %d\n", sum);
             }
         }
 
