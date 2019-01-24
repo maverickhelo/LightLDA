@@ -7,6 +7,8 @@
 #define LIGHTLDA_DOCUMENT_H_
 
 #include "common.h"
+#include "map"
+#include "vector"
 
 namespace multiverso
 {
@@ -44,6 +46,9 @@ namespace multiverso { namespace lightlda
         int32_t* begin_;
         int32_t* end_;
         int32_t& cursor_;
+
+        //文档中的词的干扰词，以及干扰词的权重。按照位置存储
+        std::vector<std::vector<std::pair<int32_t, double>>> noise_words;
 
         // No copying allowed
         Document(const Document&);

@@ -7,10 +7,12 @@
 #include "meta.h"
 #include "util.h"
 #include <vector>
+#include <map>
 #include <iostream>
 #include <multiverso/barrier.h>
 #include <multiverso/log.h>
 #include <multiverso/row.h>
+#include "SimpleRNG.h"
 
 namespace multiverso { namespace lightlda
 {     
@@ -102,6 +104,37 @@ namespace multiverso { namespace lightlda
             Multiverso::EndConfig();
         }
 
+        /**
+         * 为每个doctment设置通过laplace生成的干扰词，以及词的权重
+         */
+        static void SetDocLaplaceNoise(Document* doc) {
+            doc->noise_words.clear();            
+            for (int32_t i = 0; i < doc->Size(); ++i) {
+                int32_t cur_word = doc->Word(i);
+                std::vector<std::pair<int32_t, double>> noise_words;
+                for (int32_t counter = 0; counter < Config.num_vocabs; ++counter) {
+                    int32_t noise_word = counter; //FIXME 这里应该通过随机数生成，在词表里随机挑选
+                    auto fiter = doc->noise_words.find(cur_word);
+                    if (fiter == doct->noise_words.end()) {
+                        std::cerr << "doc reinitialized, please check" << std::end;
+                        exit(1);
+                    }
+                    double laplace_scale = SimpleRNG::GetLaplace(0, 0.1); //FIXME 这里的laplace 应该配置得到
+                    if (cur_word == noise_word) {
+                        laplace_scale += 1;
+                    }
+                    if (laplace_scale < 0.8) {
+                        continue;
+                    }
+                    noise_words.push_back(std::make_pair<int32_t, double>(noise_word, laplace_scale));
+                    if (noise_words.size() > 100) { //FIXME 个数需要是配置的
+                        break;
+                    }
+                }
+                doc->noise_words.push_back(noise_words);
+            }
+        }
+
         static void Initialize()
         {
             xorshift_rng rng;
@@ -130,6 +163,7 @@ namespace multiverso { namespace lightlda
                             Multiverso::AddToServer<int64_t>(kSummaryRow,
                                 0, doc->Topic(cursor), 1);
                         }
+                        SetDocLaplaceNoise(doc);
                     }
                     Multiverso::Flush();
                 }
