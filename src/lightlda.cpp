@@ -111,9 +111,9 @@ namespace multiverso { namespace lightlda
          */
         static void SetDocLaplaceNoise(Document* doc) {
             doc->noise_words.clear();           
-            if (Config::is_print != 0) {
-                Log::Info("doc total words num is: %d\n", doc->Size());
-            } 
+            // if (Config::is_print != 0) {
+            //     Log::Info("doc total words num is: %d\n", doc->Size());
+            // } 
             for (int32_t i = 0; i < doc->Size(); ++i) {
                 int32_t cur_word = doc->Word(i);
                 std::vector<std::pair<int32_t, float>> noise_words;
@@ -132,17 +132,21 @@ namespace multiverso { namespace lightlda
                     }
                 }
                 doc->noise_words.push_back(noise_words);
-                if (Config::is_print != 0) {
-                    Log::Info("word %d noise word num is: %d\n", cur_word, noise_words.size());
-                }
+                // if (Config::is_print != 0) {
+                //     std::string noised_words_str;
+                //     for (auto p = noise_words.begin(); p != noise_words.end(); p++) {
+                //         noised_words_str += std::to_string(p->first) + ":" + std::to_string(p->second) + " ";
+                //     }
+                //     Log::Info("word %d noise word num is: %d, they are: %s\n", cur_word, noise_words.size(), noised_words_str.c_str());
+                // }
             }
-            if (Config::is_print != 0) {
-                size_t sum = 0;
-                for (auto p = doc->noise_words.begin(); p != doc->noise_words.end(); p++) {
-                    sum += p->size();
-                } 
-                Log::Info("total noise word num is: %d\n", sum);
-            }
+            // if (Config::is_print != 0) {
+            //     size_t sum = 0;
+            //     for (auto p = doc->noise_words.begin(); p != doc->noise_words.end(); p++) {
+            //         sum += p->size();
+            //     } 
+            //     Log::Info("total noise word num is: %d\n", sum);
+            // }
         }
 
         static void Initialize()
@@ -173,7 +177,9 @@ namespace multiverso { namespace lightlda
                             Multiverso::AddToServer<int64_t>(kSummaryRow,
                                 0, doc->Topic(cursor), 1);
                         }
-                        SetDocLaplaceNoise(doc);
+                        if (Config::is_noised != 0) {
+                            SetDocLaplaceNoise(doc);
+                        }
                     }
                     Multiverso::Flush();
                 }

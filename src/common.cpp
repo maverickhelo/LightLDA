@@ -32,6 +32,7 @@ namespace multiverso { namespace lightlda
     int32_t Config::max_noise_num = 2;
     int32_t Config::is_print = 0;
     int32_t Config::laplace_steps = 1000;
+    int32_t Config::is_noised = 0;
     // -- End: Config definitioin and defalut values ----------------------- //
 
     void Config::Init(int argc, char* argv[])
@@ -70,6 +71,7 @@ namespace multiverso { namespace lightlda
             if (strcmp(argv[i], "-max_noise_num") == 0) max_noise_num = atoi(argv[i + 1]);
             if (strcmp(argv[i], "-is_print") == 0) is_print = atoi(argv[i + 1]);
             if (strcmp(argv[i], "-laplace_steps") == 0) laplace_steps = atoi(argv[i + 1]);
+            if (strcmp(argv[i], "-is_noised") == 0) is_noised = atoi(argv[i + 1]);
         }
         Check();
     }
@@ -98,6 +100,7 @@ namespace multiverso { namespace lightlda
         printf("-model_capacity <arg>    Memory pool size(MB) for local model cache\n");
         printf("-alias_capacity <arg>    Memory pool size(MB) for alias table \n");
         printf("-delta_capacity <arg>    Memory pool size(MB) for local delta cache\n");
+        printf("-is_noised <arg>         Noised or not. Default: 0\n\n");
         printf("-laplace_scale <arg>     Laplace distribution scala. Default: 0.1\n\n");
         printf("-laplace_upperthres <arg> Laplace upper threshold. Default: 0.8\n\n");
         printf("-max_noise_num <arg>     Document max noise words num per positon. Default: 1000\n\n");
