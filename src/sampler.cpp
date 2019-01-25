@@ -1,6 +1,5 @@
 #include "sampler.h"
 
-#include <iostream>
 #include <vector>
 #include <map>
 #include <cmath>
@@ -76,15 +75,6 @@ namespace multiverso { namespace lightlda
                 Log::Info("noise word is: %d \n", p->first);
             }
             word_p_topic_rows.push_back(&(model->GetWordTopicRow(p->first)));
-            for (size_t i = 0; i < 100; ++i) {
-                std::cout << word_p_topic_rows.back()->At(int32_t(i)) << " ";
-            }
-            std::cout << std::endl;
-            std::cout << "---------------" << std::endl;
-            for (size_t i = 0; i < 100; ++i) {
-                std::cout << model->GetWordTopicRow(p->first).At(int32_t(i)) << " ";
-            }
-            std::cout << std::endl;
         }
 
         std::vector<float> n_w_p_betas;
@@ -92,10 +82,6 @@ namespace multiverso { namespace lightlda
             n_w_p_betas.push_back((*p)->At(topic) + beta_);
             if (!Config::is_print != 0) {
                 Log::Info("topic is %d, topic n_beta is: %f", topic, (*p)->At(topic) + beta_);
-                for (size_t i = 0; i < 100; ++i) {
-                    std::cout << (*p)->At(int32_t(i)) << " ";
-                }
-                std::cout << "end -------------" << std::endl;
             }
         }
 
