@@ -114,10 +114,12 @@ namespace multiverso { namespace lightlda
             for (int32_t i = 0; i < doc->Size(); ++i) {
                 int32_t cur_word = doc->Word(i);
                 std::vector<std::pair<int32_t, float>> noise_words;
+                bool has_cur_word = false;
                 for (int32_t counter = 0; counter < Config::num_vocabs; ++counter) {
                     int32_t noise_word = rand() % Config::num_vocabs;
                     float laplace_scale = static_cast<float>(simple_rng.GetLaplace(0, Config::laplace_scale)); 
                     if (cur_word == noise_word) {
+                        has_cur_word = true;
                         laplace_scale += 1;
                     }
                     if (laplace_scale < Config::laplace_upperthres) {
@@ -126,6 +128,13 @@ namespace multiverso { namespace lightlda
                     noise_words.push_back(std::make_pair(noise_word, laplace_scale));
                     if (noise_words.size() >= Config::max_noise_num) { 
                         break;
+                    }
+                }
+                if (!has_cur_word) {
+                    float laplace_scale = static_cast<float>(simple_rng.GetLaplace(0, Config::laplace_scale)); 
+                    laplace_scale += 1;
+                    if (laplace_scale >= Config::laplace_upperthres) {
+                        noise_words.push_back(std::make_pair(cur_word, laplace_scale));
                     }
                 }
                 doc->noise_words.push_back(noise_words);
