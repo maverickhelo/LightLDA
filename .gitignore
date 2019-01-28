@@ -3,3 +3,6 @@ multiverso
 *.o
 example/data
 .vscode/*
+cmake-build-debug/*
+CmakeLists.txt
+.idea/*
