@@ -72,6 +72,7 @@ namespace multiverso { namespace lightlda
 
         static int32_t is_noised;
         static float laplace_scale;
+        static float laplace_lowerthres;
         static float laplace_upperthres;
         static int32_t max_noise_num;
         static int32_t is_print;
