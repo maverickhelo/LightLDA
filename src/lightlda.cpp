@@ -140,7 +140,20 @@ namespace multiverso { namespace lightlda
                 //     }
                 // }
                 if (!has_cur_word) {
-                    noise_words.push_back(std::make_pair(cur_word, 1.0));
+                    float laplace_scale = simple_rng.GetLaplace(0, Config::laplace_scale)
+                    while (laplace_scale <= 0) {
+                        laplace_scale = simple_rng.GetLaplace(0, Config::laplace_scale)
+                    }
+                    noise_words.push_back(std::make_pair(cur_word, 1.0 + laplace_scale));
+                }
+                float scale_sum = 0.0;
+                for (auto p = noise_words.begin(); p != noise_words.end(); p++) {
+                    scala_sum += p->second;
+                }
+                if (scale_sum > 0.0) {
+                    for (auto p = noise_words.begin(); p != noise_words.end(); p++) {
+                        p->first /= scala_sum;
+                    }
                 }
                 doc->noise_words.push_back(noise_words);
             }
