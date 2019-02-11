@@ -68,7 +68,7 @@ namespace multiverso { namespace lightlda
         doc->GetDocTopicVector(*doc_topic_counter_);
     }
 
-    float ComputeNoisedWordTopicBetaSum(std::vector<std::pair<int32_t, float>>& noise_words, int32_t topic_s, int32_t topic_t, ModelBase* model, float beta_, int32_t old_topic, int32_t subtractor_, float n_s_beta_num, float n_t_beta_sum) {
+    float ComputeNoisedWordTopicBetaSum(std::vector<std::pair<int32_t, float>>& noise_words, int32_t topic_s, int32_t topic_t, ModelBase* model, float beta_, int32_t old_topic, int32_t subtractor_, float n_s_beta_sum, float n_t_beta_sum) {
         std::vector<Row<int32_t>*> word_p_topic_rows;
         for (auto p = noise_words.begin(); p != noise_words.end(); p++) {
             if (Config::is_print != 0) {
@@ -109,7 +109,7 @@ namespace multiverso { namespace lightlda
             float n_tw_p_beta = n_tw_p_betas[n_index];
 			float n_sw_p_beta = n_sw_p_betas[n_index];
   
-            noised_n_w_beta += laplace_scale * std::log((n_tw_p_beta*n_s_beta_num)/(n_sw_p_beta*n_t_beta_sum));
+            noised_n_w_beta += laplace_scale * std::log((n_tw_p_beta*n_s_beta_sum)/(n_sw_p_beta*n_t_beta_sum));
             
             if (Config::is_print != 0) {
                 Log::Info("laplace scale is: %f, noised word p_beta is: %f and %f, current noised_n_w_beta is: %f\n", laplace_scale, n_tw_p_beta, n_sw_p_beta, noised_n_w_beta);
