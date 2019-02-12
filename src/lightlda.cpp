@@ -8,6 +8,7 @@
 #include "util.h"
 #include <vector>
 #include <map>
+#include <queue>
 #include <iostream>
 #include <algorithm>
 #include <multiverso/barrier.h>
@@ -18,7 +19,13 @@
 static SimpleRNG simple_rng;
 
 namespace multiverso { namespace lightlda
-{     
+{    
+    struct cmpPairSecondFloatGreat{
+        bool operator() (const std::pair<int32_t, float>&a, const std::pair<int32_t, float>& b) {
+            return a.second > b.second;
+        }
+    };
+
     class LightLDA
     {
     public:
@@ -114,7 +121,8 @@ namespace multiverso { namespace lightlda
             doc->noise_words.clear();           
             for (int32_t i = 0; i < doc->Size(); ++i) {
                 int32_t cur_word = doc->Word(i);
-                std::vector<std::pair<int32_t, float>> noise_words;
+                // std::vector<std::pair<int32_t, float>> noise_words;
+                std::priority_queue<std::pair<int32_t, float>, std::vector<std::pair<int32_t, float>>, cmpPairSecondFloatGreat> noise_words;
                 bool has_cur_word = false;
                 for (int32_t counter = 0; counter < Config::num_vocabs; ++counter) {
                     //int32_t noise_word = rand() % Config::num_vocabs;
@@ -127,7 +135,18 @@ namespace multiverso { namespace lightlda
                         has_cur_word = true;
                         laplace_scale += 1;
                     }
-                    noise_words.push_back(std::make_pair(noise_word, laplace_scale));
+                    
+                    if (noise_words.size() < Config::max_noise_num) {
+                        noise_words.push(std::make_pair(noise_word, laplace_scale));
+                    } else {
+                        if (laplace_scale <= noise_words.top().second) {
+                            continue;
+                        } else {
+                            noise_words.pop();
+                            noise_words.push(std::make_pair(noise_word, laplace_scale));
+                        }
+                    }
+                    // noise_words.push_back(std::make_pair(noise_word, laplace_scale));
                     //if (noise_words.size() >= Config::max_noise_num) { 
                     //    break;
                     //}
@@ -138,21 +157,33 @@ namespace multiverso { namespace lightlda
                     while (laplace_scale > Config::laplace_upperthres || laplace_scale < Config::laplace_lowerthres) {
                         laplace_scale = simple_rng.GetLaplace(0, Config::laplace_scale);
                     }
-                    noise_words.push_back(std::make_pair(cur_word, 1.0 + laplace_scale));
-                }
-                
-                // descending sort
-                std::sort
-                std::sort(noise_words.begin(), noise_words.end(), [](const std::pair<int32_t, float>&a, const std::pair<int32_t, float>& b){ return a.second > b.second;});
-                
-                std::vector<std::pair<int32_t, float>> top_noise_words;
-                if (int32_t(noise_words.size()) > Config::max_noise_num) {
-                    for (int32_t top_i = 0; top_i < Config::max_noise_num; ++top_i) {
-                        top_noise_words.push_back(noise_words[top_i]);
+
+                    if (noise_words.size() < Config::max_noise_num) {
+                        noise_words.push(std::make_pair(cur_word, laplace_scale + 1.0));
+                    } else {
+                        if (laplace_scale < noise_words.top().second) {
+                            continue;
+                        } else {
+                            noise_words.pop();
+                            noise_words.push(std::make_pair(cur_word, laplace_scale + 1.0));
+                        }
                     }
-                } else {
-                    top_noise_words = noise_words;
+                    // noise_words.push_back(std::make_pair(cur_word, 1.0 + laplace_scale));
                 }
+
+                std::vector<std::pair<int32_t, float>> top_noise_words;
+                while (!noise_words.empty()){
+                    top_noise_words.push_back(noise_words.top());
+                    noise_words.pop(); 
+                }
+                
+                // if (int32_t(noise_words.size()) > Config::max_noise_num) {
+                //     for (int32_t top_i = 0; top_i < Config::max_noise_num; ++top_i) {
+                //         top_noise_words.push_back(noise_words[top_i]);
+                //     }
+                // } else {
+                //     top_noise_words = noise_words;
+                // }
 
                 float scale_sum = 0.0;
                 for (auto p = top_noise_words.begin(); p != top_noise_words.end(); p++) {
