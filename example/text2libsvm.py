@@ -6,18 +6,18 @@ This script is for converting UCI format docword and vocab file to libsvm format
 python text2libsvm.py <docword.input> <vocab.input> <libsvm.output> <dict.output>
 
 """
-
+from __future__ import print_function
 import sys
 
 if len(sys.argv) != 5:
-    print "Usage: python text2libsvm.py <docword.input> <vocab.input> <libsvm.output> <dict.output>"
+    print("Usage: python text2libsvm.py <docword.input> <vocab.input> <libsvm.output> <dict.output>")
     exit(1)
 
-data_file = open(sys.argv[1], 'r')
-vocab_file = open(sys.argv[2], 'r')
+data_file = open(sys.argv[1], 'r', encoding='utf8')
+vocab_file = open(sys.argv[2], 'r', encoding='utf8')
 
-libsvm_file = open(sys.argv[3], 'w')
-dict_file = open(sys.argv[4], 'w')
+libsvm_file = open(sys.argv[3], 'w', encoding='utf8')
+dict_file = open(sys.argv[4], 'w', encoding='utf8')
 
 word_dict = {}
 vocab_dict = []
@@ -36,7 +36,8 @@ while line:
         doc_id = int(col[0])
         word_id = int(col[1]) - 1
         word_count = int(col[2])
-        if not word_dict.has_key(word_id):
+        #if not word_dict.has_key(word_id):
+        if word_id not in word_dict:
             word_dict[word_id] = 0
         word_dict[word_id] += word_count
         if doc_id != last_doc_id:
