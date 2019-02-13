@@ -124,9 +124,10 @@ namespace multiverso { namespace lightlda
                 // std::vector<std::pair<int32_t, float>> noise_words;
                 std::priority_queue<std::pair<int32_t, float>, std::vector<std::pair<int32_t, float>>, cmpPairSecondFloatGreat> noise_words;
                 bool has_cur_word = false;
-                for (int32_t counter = 0; counter < Config::num_vocabs; ++counter) {
-                    //int32_t noise_word = rand() % Config::num_vocabs;
-                    int32_t noise_word = counter;
+                //for (int32_t counter = 0; counter < Config::num_vocabs; ++counter) {
+                for (int32_t counter = 0; counter < Config::laplace_steps; ++counter) {
+                    int32_t noise_word = rand() % Config::num_vocabs;
+                    //int32_t noise_word = counter;
                     float laplace_scale = static_cast<float>(simple_rng.GetLaplace(0, Config::laplace_scale)); 
                     if (laplace_scale > Config::laplace_upperthres || laplace_scale < Config::laplace_lowerthres) {
                         continue;
@@ -157,20 +158,23 @@ namespace multiverso { namespace lightlda
                     while (laplace_scale > Config::laplace_upperthres || laplace_scale < Config::laplace_lowerthres) {
                         laplace_scale = simple_rng.GetLaplace(0, Config::laplace_scale);
                     }
-
+                    laplace_scale += 1.0;
                     if (noise_words.size() < Config::max_noise_num) {
-                        noise_words.push(std::make_pair(cur_word, laplace_scale + 1.0));
+                        noise_words.push(std::make_pair(cur_word, laplace_scale));
                     } else {
                         if (laplace_scale < noise_words.top().second) {
-                            continue;
+                            ;
                         } else {
                             noise_words.pop();
-                            noise_words.push(std::make_pair(cur_word, laplace_scale + 1.0));
+                            noise_words.push(std::make_pair(cur_word, laplace_scale));
                         }
                     }
                     // noise_words.push_back(std::make_pair(cur_word, 1.0 + laplace_scale));
                 }
-
+                if (noise_words.empty()) {
+                    Log::Info("empty noise words");
+                    exit(1);
+                }
                 std::vector<std::pair<int32_t, float>> top_noise_words;
                 while (!noise_words.empty()){
                     top_noise_words.push_back(noise_words.top());
